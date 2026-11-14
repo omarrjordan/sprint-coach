@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#0f1115">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Sprint Coach</title>
+<style>
+  :root{
+    --bg:#0f1115; --card:#1a1d24; --card2:#232731; --text:#f2f3f5; --muted:#9aa0ab;
+    --accent:#ff6a2b; --accent2:#ffb02b; --go:#2bd47d; --stop:#ff3b4a; --line:#2c313c;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--text);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+  body{display:flex;flex-direction:column}
+  header{padding:14px 16px 6px;display:flex;align-items:center;justify-content:space-between}
+  header h1{font-size:20px;margin:0;letter-spacing:.5px}
+  header h1 span{color:var(--accent)}
+  .icon-btn{background:none;border:1px solid var(--line);color:var(--muted);border-radius:10px;padding:6px 10px;font-size:13px}
+  main{flex:1;overflow-y:auto;padding:8px 16px 100px}
+  nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:#14171d;border-top:1px solid var(--line);
+    padding-bottom:env(safe-area-inset-bottom)}
+  nav button{flex:1;background:none;border:none;color:var(--muted);padding:10px 0 12px;font-size:12px;font-weight:600}
+  nav button .ic{display:block;font-size:22px;margin-bottom:2px}
+  nav button.active{color:var(--accent)}
+  .view{display:none}
+  .view.active{display:block}
+  h2{font-size:17px;margin:14px 0 8px}
+  .card{background:var(--card);border-radius:16px;padding:14px;margin-bottom:12px}
+  .muted{color:var(--muted);font-size:14px;line-height:1.4}
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{background:var(--card2);border:2px solid transparent;color:var(--text);border-radius:12px;
+    padding:12px 0;font-size:17px;font-weight:700;flex:1 0 calc(25% - 8px);text-align:center}
+  .chip.sel{border-color:var(--accent);background:#3a2418;color:#fff}
+  .row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px}
+  .row label{font-size:15px}
+  .stepper{display:flex;align-items:center;gap:6px}
+  .stepper button{width:40px;height:40px;border-radius:10px;border:none;background:var(--card2);color:var(--text);font-size:22px}
+  .stepper output{min-width:58px;text-align:center;font-size:18px;font-weight:700}
+  .big-btn{width:100%;border:none;border-radius:16px;padding:18px;font-size:20px;font-weight:800;
+    background:var(--accent);color:#111;margin-top:6px;letter-spacing:.5px}
+  .big-btn.secondary{background:var(--card2);color:var(--text)}
+  .big-btn:disabled{opacity:.4}
+  .seg{display:flex;background:var(--card2);border-radius:12px;padding:4px;gap:4px}
+  .seg button{flex:1;border:none;background:none;color:var(--muted);padding:10px;border-radius:9px;font-weight:700;font-size:14px}
+  .seg button.sel{background:var(--accent);color:#111}
+  .gps{display:flex;align-items:center;gap:10px;margin-top:12px;font-size:14px}
+  .dot{width:12px;height:12px;border-radius:50%;background:#666;flex:none}
+  .dot.bad{background:var(--stop)} .dot.ok{background:var(--accent2)} .dot.good{background:var(--go)}
+  .drill{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--line)}
+  .drill:last-child{border-bottom:none}
+  .drill .n{background:var(--card2);border-radius:8px;min-width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:var(--accent)}
+  .drill b{display:block;font-size:16px}
+  .drill .dose{color:var(--accent2);font-size:13px;font-weight:600;margin:2px 0}
+  .hist-item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+  .hist-item:last-child{border-bottom:none}
+  .hist-item .t{font-size:20px;font-weight:800;color:var(--accent)}
+  .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .stat{background:var(--card2);border-radius:12px;padding:10px}
+  .stat .v{font-size:20px;font-weight:800}
+  .stat .l{font-size:12px;color:var(--muted)}
+
+  /* Full-screen run overlay */
+  #run{position:fixed;inset:0;background:var(--bg);display:none;flex-direction:column;align-items:center;
+    justify-content:space-between;padding:24px 16px calc(24px + env(safe-area-inset-bottom));z-index:10;text-align:center}
+  #run.show{display:flex}
+  #run.go{background:#0d2a1b} #run.set{background:#2a210d} #run.rest{background:#14202e} #run.done{background:#1a1d24}
+  #runLabel{font-size:18px;color:var(--muted);font-weight:600;min-height:24px}
+  #runPhase{font-size:40px;font-weight:900;letter-spacing:1px;min-height:48px}
+  #runBig{font-size:96px;font-weight:900;font-variant-numeric:tabular-nums;line-height:1}
+  #runSub{font-size:20px;color:var(--muted);min-height:28px;font-variant-numeric:tabular-nums}
+  #runInfo{font-size:15px;color:var(--muted);min-height:40px;max-width:420px;line-height:1.4}
+  #runBtns{width:100%;display:flex;flex-direction:column;gap:10px}
+  #stopBtn{background:var(--stop);color:#fff;font-size:28px;padding:32px}
+  .progress{width:100%;height:10px;background:var(--card2);border-radius:6px;overflow:hidden}
+  .progress div{height:100%;width:0;background:var(--go);transition:width .2s}
+  .toggle{appearance:none;width:48px;height:28px;background:var(--card2);border-radius:14px;position:relative;outline:none}
+  .toggle:checked{background:var(--go)}
+  .toggle::after{content:"";position:absolute;width:22px;height:22px;border-radius:50%;background:#fff;top:3px;left:3px;transition:left .2s}
+  .toggle:checked::after{left:23px}
+</style>
+</head>
+<body>
+<header>
+  <h1>SPRINT <span>COACH</span></h1>
+  <button class="icon-btn" id="soundBtn">🔊 Sound on</button>
+</header>
+
+<main>
+  <!-- WARM-UP -->
+  <section class="view active" id="v-warmup">
+    <div class="card">
+      <div class="muted">Do this before every sprint session (about 15 minutes). Drills marked with a distance: mark out roughly 20 m and walk back between reps.</div>
+      <button class="big-btn" id="startWarmup" style="margin-top:12px">▶ Start guided warm-up</button>
+    </div>
+    <div class="card" id="drillList"></div>
+  </section>
+
+  <!-- TIME SPRINTS -->
+  <section class="view" id="v-time">
+    <h2>Sprint for time</h2>
+    <div class="card">
+      <div class="chips" id="timeChips"></div>
+      <div class="row"><label>Custom (seconds)</label>
+        <div class="stepper"><button data-step="tsec:-1">−</button><output id="tsec">10</output><button data-step="tsec:1">+</button></div></div>
+      <div class="row"><label>Reps</label>
+        <div class="stepper"><button data-step="treps:-1">−</button><output id="treps">6</output><button data-step="treps:1">+</button></div></div>
+      <div class="row"><label>Rest between reps</label>
+        <div class="stepper"><button data-step="trest:-15">−</button><output id="trest">1:30</output><button data-step="trest:15">+</button></div></div>
+    </div>
+    <button class="big-btn" id="startTime">START</button>
+    <p class="muted">Tip: a common fat-loss session is 6–8 × 10–20 s all-out with full walking recovery. Rest should be at least 5–10× the sprint time for real top-speed work.</p>
+  </section>
+
+  <!-- DISTANCE SPRINTS -->
+  <section class="view" id="v-dist">
+    <h2>Sprint for distance</h2>
+    <div class="card">
+      <div class="chips" id="distChips"></div>
+      <div class="row"><label>Reps</label>
+        <div class="stepper"><button data-step="dreps:-1">−</button><output id="dreps">4</output><button data-step="dreps:1">+</button></div></div>
+      <div class="row"><label>Rest between reps</label>
+        <div class="stepper"><button data-step="drest:-15">−</button><output id="drest">2:00</output><button data-step="drest:15">+</button></div></div>
+    </div>
+    <div class="card">
+      <div class="seg" id="modeSeg">
+        <button data-mode="gps" class="sel">📡 GPS</button>
+        <button data-mode="marked">📏 Marked course</button>
+      </div>
+      <p class="muted" id="modeHelp"></p>
+      <div class="gps" id="gpsBox"><span class="dot" id="gpsDot"></span><span id="gpsText">GPS off</span></div>
+    </div>
+    <button class="big-btn" id="startDist">START</button>
+  </section>
+
+  <!-- HISTORY -->
+  <section class="view" id="v-hist">
+    <h2>Your progress</h2>
+    <div class="stat-grid" id="stats" style="margin-bottom:12px"></div>
+    <div class="card" id="histList"></div>
+    <button class="big-btn secondary" id="clearHist">Clear history</button>
+  </section>
+</main>
+
+<nav>
+  <button data-view="warmup" class="active"><span class="ic">🔥</span>Warm-up</button>
+  <button data-view="time"><span class="ic">⏱️</span>Time</button>
+  <button data-view="dist"><span class="ic">📍</span>Distance</button>
+  <button data-view="hist"><span class="ic">📈</span>History</button>
+</nav>
+
+<!-- RUN OVERLAY -->
+<div id="run">
+  <div style="width:100%">
+    <div id="runLabel"></div>
+    <div class="progress" style="margin-top:10px"><div id="runProg"></div></div>
+  </div>
+  <div>
+    <div id="runPhase"></div>
+    <div id="runBig"></div>
+    <div id="runSub"></div>
+  </div>
+  <div id="runInfo"></div>
+  <div id="runBtns">
+    <button class="big-btn" id="stopBtn" style="display:none">STOP</button>
+    <button class="big-btn" id="nextBtn" style="display:none">Next</button>
+    <button class="big-btn secondary" id="quitBtn">End session</button>
+  </div>
+</div>
+
+<script>
+(() => {
+"use strict";
+
+/* ---------- Data ---------- */
+const DRILLS = [
+  {name:"Easy jog", dose:"3 minutes", secs:180, how:"Very relaxed jog to raise your heart rate and body temperature."},
+  {name:"Leg swings (front–back)", dose:"10 each leg", secs:45, how:"Hold a wall or fence. Swing one leg forward and back, gradually higher. Keep your torso tall."},
+  {name:"Leg swings (side–side)", dose:"10 each leg", secs:45, how:"Face the wall, swing the leg across your body and out to the side."},
+  {name:"Walking lunges", dose:"10 each leg", secs:60, how:"Long step, back knee close to the ground, push up tall. Reach arms overhead for a bigger stretch."},
+  {name:"A-March", dose:"2 × 20 m", how:"Walk tall. Drive one knee up to hip height with toes pulled up (dorsiflexed), then step down under your hips. Opposite arm swings at 90°. Slow and precise."},
+  {name:"A-Skip", dose:"2 × 20 m", how:"Same shape as the A-March, but with a small skip. Knee up, toes up, strike the ground under your hips and bounce off quickly. Stay tall."},
+  {name:"B-Skip", dose:"2 × 20 m", how:"A-Skip, then extend the lower leg forward and paw it back down under you, like scraping the ground."},
+  {name:"High knees", dose:"2 × 20 m", how:"Quick, short steps bringing knees to hip height. Stay on the balls of your feet, fast arms."},
+  {name:"Butt kicks", dose:"2 × 20 m", how:"Quick steps pulling heels up toward your glutes. Knees stay pointing down."},
+  {name:"Straight-leg bounds", dose:"2 × 20 m", how:"Legs nearly straight, pull the ground back under you with each step, landing on the ball of the foot."},
+  {name:"Carioca", dose:"20 m each direction", how:"Move sideways, crossing the back leg in front then behind. Rotate the hips, keep the shoulders square."},
+  {name:"Build-up runs", dose:"3 × 50 m", how:"Run 1 at about 60% effort, run 2 at 75%, run 3 at 90%. Walk back between each. You're now ready to sprint."}
+];
+const TIME_PRESETS = [6,8,10,15,20,30,45,60];
+const DIST_PRESETS = [60,80,100,150,200,400];
+
+/* ---------- Storage (safe) ---------- */
+const store = {
+  get(k, d){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; }catch(e){ return d; } },
+  set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+};
+
+const state = Object.assign({
+  tsec:10, treps:6, trest:90, dist:100, dreps:4, drest:120, mode:"gps", sound:true
+}, store.get("sprint.settings", {}));
+const saveSettings = () => store.set("sprint.settings", state);
+
+/* ---------- Helpers ---------- */
+const $ = id => document.getElementById(id);
+const fmtClock = s => { s = Math.max(0, Math.round(s)); return Math.floor(s/60) + ":" + String(s%60).padStart(2,"0"); };
+const fmtSec = s => s.toFixed(2) + " s";
+
+/* ---------- Sound / voice / vibration ---------- */
+let actx = null;
+function audio(){ if(!actx){ try{ actx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} } if(actx && actx.state==="suspended") actx.resume(); return actx; }
+function beep(freq=880, dur=0.15, vol=0.6){
+  if(!state.sound) return; const a = audio(); if(!a) return;
+  const o = a.createOscillator(), g = a.createGain();
+  o.type="square"; o.frequency.value=freq; g.gain.value=vol;
+  o.connect(g); g.connect(a.destination); o.start(); o.stop(a.currentTime+dur);
+}
+function say(text){
+  if(!state.sound || !("speechSynthesis" in window)) return;
+  try{ speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.rate=1.05; speechSynthesis.speak(u); }catch(e){}
+}
+function buzz(p){ try{ navigator.vibrate && navigator.vibrate(p); }catch(e){} }
+
+/* ---------- Keep screen awake ---------- */
+let wakeLock = null;
+async function keepAwake(on){
+  try{
+    if(on && "wakeLock" in navigator && !wakeLock){ wakeLock = await navigator.wakeLock.request("screen"); wakeLock.addEventListener("release",()=>wakeLock=null); }
+    if(!on && wakeLock){ await wakeLock.release(); wakeLock=null; }
+  }catch(e){}
+}
+document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible" && runActive) keepAwake(true); });
+
+/* ---------- Navigation ---------- */
+document.querySelectorAll("nav button").forEach(b => b.onclick = () => {
+  document.querySelectorAll("nav button").forEach(x=>x.classList.toggle("active", x===b));
+  document.querySelectorAll(".view").forEach(v=>v.classList.toggle("active", v.id==="v-"+b.dataset.view));
+  if(b.dataset.view==="dist" && state.mode==="gps") gpsStart(); else if(!runActive) gpsStop();
+  if(b.dataset.view==="hist") renderHistory();
+});
+
+$("soundBtn").onclick = () => { state.sound=!state.sound; saveSettings(); renderSound(); if(state.sound){ audio(); beep(660,.08); } };
+function renderSound(){ $("soundBtn").textContent = state.sound ? "🔊 Sound on" : "🔇 Sound off"; }
+
+/* ---------- Build UI ---------- */
+$("drillList").innerHTML = DRILLS.map((d,i)=>`<div class="drill"><div class="n">${i+1}</div><div><b>${d.name}</b><div class="dose">${d.dose}</div><div class="muted">${d.how}</div></div></div>`).join("");
+
+function renderChips(){
+  $("timeChips").innerHTML = TIME_PRESETS.map(s=>`<button class="chip ${s===state.tsec?"sel":""}" data-t="${s}">${s}s</button>`).join("");
+  $("distChips").innerHTML = DIST_PRESETS.map(m=>`<button class="chip ${m===state.dist?"sel":""}" data-d="${m}">${m}m</button>`).join("");
+  $("timeChips").querySelectorAll(".chip").forEach(c=>c.onclick=()=>{ state.tsec=+c.dataset.t; saveSettings(); renderAll(); });
+  $("distChips").querySelectorAll(".chip").forEach(c=>c.onclick=()=>{ state.dist=+c.dataset.d; saveSettings(); renderAll(); });
+}
+const LIMITS = {tsec:[6,60], treps:[1,20], trest:[15,600], dreps:[1,20], drest:[15,900]};
+document.querySelectorAll("[data-step]").forEach(b => b.onclick = () => {
+  const [k, d] = b.dataset.step.split(":"); const [lo,hi] = LIMITS[k];
+  state[k] = Math.min(hi, Math.max(lo, state[k] + +d)); saveSettings(); renderAll();
+});
+$("modeSeg").querySelectorAll("button").forEach(b=>b.onclick=()=>{ state.mode=b.dataset.mode; saveSettings(); renderAll(); if(state.mode==="gps") gpsStart(); else gpsStop(); });
+
+function renderAll(){
+  renderChips();
+  $("tsec").textContent = state.tsec; $("treps").textContent = state.treps; $("trest").textContent = fmtClock(state.trest);
+  $("dreps").textContent = state.dreps; $("drest").textContent = fmtClock(state.drest);
+  $("modeSeg").querySelectorAll("button").forEach(b=>b.classList.toggle("sel", b.dataset.mode===state.mode));
+  $("gpsBox").style.display = state.mode==="gps" ? "flex" : "none";
+  $("modeHelp").textContent = state.mode==="gps"
+    ? "The app measures your distance with GPS and beeps when you reach it. Best outdoors with open sky. GPS is accurate to a few metres, so short distances (60–100 m) can be off slightly."
+    : "Most accurate for short sprints. Use a track or a measured stretch. Start on GO, tap the big STOP button as you cross the finish.";
+  renderSound();
+}
+
+/* ---------- GPS ---------- */
+let gpsWatch = null, lastFix = null;
+const GOOD_ACC = 10, OK_ACC = 20;
+function gpsStart(){
+  if(gpsWatch!==null) return;
+  if(!("geolocation" in navigator)){ setGps("bad","GPS not available on this device/browser"); return; }
+  setGps("bad","Finding GPS… stand outside with open sky");
+  gpsWatch = navigator.geolocation.watchPosition(onFix, err=>{
+    const msg = err.code===1 ? "Location permission denied. Allow location for this page in Chrome settings, or use Marked course."
+      : "Waiting for GPS signal…";
+    setGps("bad", msg);
+  }, {enableHighAccuracy:true, maximumAge:0, timeout:20000});
+}
+function gpsStop(){ if(gpsWatch!==null){ navigator.geolocation.clearWatch(gpsWatch); gpsWatch=null; } lastFix=null; setGps("","GPS off"); }
+function setGps(cls, txt){ $("gpsDot").className = "dot " + cls; $("gpsText").textContent = txt; }
+function onFix(p){
+  lastFix = {lat:p.coords.latitude, lon:p.coords.longitude, acc:p.coords.accuracy, t:p.timestamp, speed:p.coords.speed};
+  const a = Math.round(p.coords.accuracy);
+  if(a<=GOOD_ACC) setGps("good", `GPS ready (±${a} m)`);
+  else if(a<=OK_ACC) setGps("ok", `GPS fair (±${a} m) — wait a moment for better accuracy`);
+  else setGps("bad", `GPS weak (±${a} m) — keep waiting`);
+  if(runActive && distRun) distRun.onFix(lastFix);
+}
+function haversine(a, b){
+  const R=6371000, toR=x=>x*Math.PI/180;
+  const dLat=toR(b.lat-a.lat), dLon=toR(b.lon-a.lon);
+  const h=Math.sin(dLat/2)**2 + Math.cos(toR(a.lat))*Math.cos(toR(b.lat))*Math.sin(dLon/2)**2;
+  return 2*R*Math.asin(Math.sqrt(h));
+}
+
+/* ---------- Run engine ---------- */
+let runActive=false, cancelled=false, rafId=null, distRun=null, timers=[];
+const run = $("run");
+function showRun(cls){ run.className = "show " + (cls||""); }
+function setRun({label, phase, big, sub, info, prog}){
+  if(label!==undefined) $("runLabel").textContent=label;
+  if(phase!==undefined) $("runPhase").textContent=phase;
+  if(big!==undefined) $("runBig").textContent=big;
+  if(sub!==undefined) $("runSub").textContent=sub;
+  if(info!==undefined) $("runInfo").textContent=info;
+  if(prog!==undefined) $("runProg").style.width=(prog*100)+"%";
+}
+const wait = ms => new Promise((res, rej)=>{ const id=setTimeout(()=> cancelled?rej("cancel"):res(), ms); timers.push(id); });
+function btn(id, show, text){ const b=$(id); b.style.display=show?"block":"none"; if(text) b.textContent=text; }
+function waitTap(id){ return new Promise((res,rej)=>{ const b=$(id); b.onclick=()=>{ b.onclick=null; res(); }; quitRej.push(rej); }); }
+let quitRej=[];
+
+$("quitBtn").onclick = () => endSession();
+function endSession(){
+  cancelled=true; timers.forEach(clearTimeout); timers=[]; cancelAnimationFrame(rafId);
+  quitRej.forEach(r=>r("cancel")); quitRej=[]; distRun=null;
+  try{ speechSynthesis.cancel(); }catch(e){}
+  runActive=false; run.className=""; keepAwake(false);
+  btn("stopBtn",false); btn("nextBtn",false);
+  if(!document.querySelector('nav button[data-view="dist"]').classList.contains("active") || state.mode!=="gps") gpsStop();
+}
+async function beginRun(){ audio(); cancelled=false; runActive=true; quitRej=[]; await keepAwake(true); }
+
+async function countdown(label, prog){
+  showRun("set"); btn("stopBtn",false); btn("nextBtn",false);
+  setRun({label, phase:"On your marks", big:"", sub:"", info:"Get into your starting position.", prog});
+  say("On your marks"); beep(520,.12); await wait(2500);
+  setRun({phase:"Set", info:""}); say("Set"); beep(520,.12);
+  await wait(1500 + Math.random()*1000);   // random hold, like a real start
+}
+function goSignal(){ beep(1200,.35,.8); buzz(400); }
+function finishSignal(){ beep(880,.15); setTimeout(()=>beep(880,.15),200); setTimeout(()=>beep(1320,.4),400); buzz([200,100,200,100,400]); }
+
+async function rest(secs, label, nextText, prog){
+  showRun("rest"); btn("stopBtn",false); btn("nextBtn",true,"Skip rest");
+  let skip=false; $("nextBtn").onclick=()=>{ skip=true; };
+  const end = Date.now()+secs*1000;
+  say("Rest. Walk back.");
+  while(!skip){
+    if(cancelled) throw "cancel";
+    const left = (end-Date.now())/1000;
+    if(left<=0) break;
+    setRun({label, phase:"Rest", big:fmtClock(left), sub:nextText, info:"Walk back slowly and breathe. Full recovery = faster sprints.", prog});
+    if(Math.ceil(left)===10 && !rest._said){ say("10 seconds"); rest._said=true; }
+    await wait(250);
+  }
+  rest._said=false; btn("nextBtn",false);
+}
+
+/* ---- Timed sprints ---- */
+$("startTime").onclick = async () => {
+  const secs=state.tsec, reps=state.treps, restS=state.trest; const results=[];
+  await beginRun();
+  try{
+    for(let r=1;r<=reps;r++){
+      const label=`Rep ${r} of ${reps} · ${secs}s sprint`;
+      await countdown(label, (r-1)/reps);
+      showRun("go"); goSignal(); setRun({phase:"GO!", info:"Sprint! Drive your arms, stay tall."});
+      const t0=performance.now(); let warned=false;
+      await new Promise((res,rej)=>{
+        quitRej.push(rej);
+        const tick=()=>{
+          if(cancelled) return;
+          const el=(performance.now()-t0)/1000, left=secs-el;
+          setRun({big:Math.max(0,left).toFixed(1), sub:"seconds left"});
+          if(!warned && left<=3 && secs>=8){ warned=true; beep(700,.08); }
+          if(left<=0){ res(); return; }
+          rafId=requestAnimationFrame(tick);
+        };
+        tick();
+      });
+      finishSignal(); say("Stop");
+      results.push(secs);
+      addHistory({type:"time", target:secs, value:secs});
+      if(r<reps) await rest(restS, label, `Next: rep ${r+1} of ${reps}`, r/reps);
+    }
+    await sessionDone(`${reps} × ${secs}s complete`, `Total sprint time: ${reps*secs} seconds. Great work — cool down with an easy 5-minute walk and some stretching.`);
+  }catch(e){ /* cancelled */ }
+};
+
+/* ---- Distance sprints ---- */
+$("startDist").onclick = async () => {
+  const target=state.dist, reps=state.dreps, restS=state.drest, gps=state.mode==="gps";
+  if(gps){
+    gpsStart();
+    if(!lastFix || lastFix.acc>OK_ACC){
+      if(!confirm("GPS signal isn't strong yet. Start anyway? (Results may be less accurate.) Tip: wait for the green dot, or use Marked course.")) return;
+    }
+  }
+  await beginRun();
+  const times=[];
+  try{
+    for(let r=1;r<=reps;r++){
+      const label=`Rep ${r} of ${reps} · ${target} m ${gps?"(GPS)":"(marked)"}`;
+      await countdown(label, (r-1)/reps);
+      showRun("go"); goSignal();
+      const t=gps ? await gpsSprint(target) : await markedSprint(target);
+      if(t===null) continue;
+      finishSignal(); say(t.toFixed(1)+" seconds");
+      times.push(t);
+      addHistory({type:"dist", target, value:t, mode:gps?"gps":"marked"});
+      showRun("done");
+      setRun({phase:"Finished", big:t.toFixed(2), sub:`seconds · ${(target/t*3.6).toFixed(1)} km/h avg`, info:""});
+      await wait(2500);
+      if(r<reps) await rest(restS, label, `Next: rep ${r+1} of ${reps}`, r/reps);
+    }
+    const best=Math.min(...times);
+    await sessionDone(`${reps} × ${target} m complete`, times.length
+      ? `Best: ${fmtSec(best)} · Average: ${fmtSec(times.reduce((a,b)=>a+b,0)/times.length)}\nAll: ${times.map(x=>x.toFixed(2)).join(", ")}`
+      : "");
+  }catch(e){ /* cancelled */ }
+};
+
+function markedSprint(target){
+  return new Promise((res,rej)=>{
+    quitRej.push(rej);
+    setRun({phase:"GO!", info:`Tap STOP as you cross the ${target} m mark.`});
+    btn("stopBtn",true,"STOP");
+    const t0=performance.now();
+    const tick=()=>{ if(cancelled) return; setRun({big:((performance.now()-t0)/1000).toFixed(2), sub:"seconds"}); rafId=requestAnimationFrame(tick); };
+    tick();
+    $("stopBtn").onclick=()=>{ cancelAnimationFrame(rafId); btn("stopBtn",false); res((performance.now()-t0)/1000); };
+  });
+}
+
+function gpsSprint(target){
+  return new Promise((res,rej)=>{
+    quitRej.push(rej);
+    const goEpoch=Date.now(), t0=performance.now();
+    let dist=0, prev=lastFix ? {...lastFix, t:goEpoch} : null, done=false;
+    setRun({phase:"GO!", info:"Run! The app will beep when you reach the distance. Tap STOP if you need to end early."});
+    btn("stopBtn",true,"STOP (manual)");
+    const finish = secs => { if(done) return; done=true; distRun=null; cancelAnimationFrame(rafId); btn("stopBtn",false); res(secs); };
+    distRun = {
+      onFix(f){
+        if(done) return;
+        if(f.acc>30){ return; }                      // ignore very poor fixes
+        if(!prev){ prev={...f, t:Math.max(f.t,goEpoch)}; return; }
+        const seg=haversine(prev,f);
+        if(seg < Math.min(1.5, f.acc*0.15)){ return; } // ignore jitter while nearly still
+        const before=dist; dist+=seg;
+        if(dist>=target){
+          // interpolate the exact moment the target was crossed
+          const frac=(target-before)/seg;
+          const tCross=prev.t + frac*(f.t-prev.t);
+          finish(Math.max(0.5,(tCross-goEpoch)/1000));
+          return;
+        }
+        prev=f;
+      }
+    };
+    const tick=()=>{
+      if(cancelled||done) return;
+      const el=(performance.now()-t0)/1000;
+      const acc = lastFix ? `GPS ±${Math.round(lastFix.acc)} m` : "No GPS fix";
+      setRun({big:el.toFixed(1), sub:`${Math.round(dist)} / ${target} m · ${acc}`, prog:Math.min(1,dist/target)});
+      rafId=requestAnimationFrame(tick);
+    };
+    tick();
+    $("stopBtn").onclick=()=>{
+      const el=(performance.now()-t0)/1000;
+      if(dist>=target*0.9) finish(el);
+      else { finish(null); say("Stopped"); }
+    };
+  });
+}
+
+async function sessionDone(title, text){
+  showRun("done"); btn("stopBtn",false);
+  setRun({label:"Session complete", phase:"✅ "+title, big:"", sub:"", info:text, prog:1});
+  say("Session complete. Great work.");
+  btn("nextBtn",true,"Done");
+  await waitTap("nextBtn");
+  endSession();
+}
+
+/* ---- Guided warm-up ---- */
+$("startWarmup").onclick = async () => {
+  await beginRun();
+  try{
+    for(let i=0;i<DRILLS.length;i++){
+      const d=DRILLS[i], label=`Warm-up ${i+1} of ${DRILLS.length}`, prog=i/DRILLS.length;
+      showRun("rest"); say(d.name);
+      setRun({label, phase:d.name, big:"", sub:d.dose, info:d.how, prog});
+      if(d.secs){
+        btn("nextBtn",true,"Skip");
+        let skip=false; $("nextBtn").onclick=()=>skip=true;
+        const end=Date.now()+d.secs*1000;
+        while(!skip){
+          if(cancelled) throw "cancel";
+          const left=(end-Date.now())/1000; if(left<=0) break;
+          setRun({big:fmtClock(left)}); await wait(250);
+        }
+        beep(880,.15);
+      } else {
+        setRun({big:"🏃"});
+        btn("nextBtn",true,"Done — next drill");
+        await waitTap("nextBtn");
+      }
+    }
+    await sessionDone("Warm-up complete", "You're ready to sprint. Head to the Time or Distance tab.");
+  }catch(e){}
+};
+
+/* ---------- History ---------- */
+function addHistory(entry){
+  const h=store.get("sprint.history", []);
+  h.unshift({...entry, at:Date.now()}); store.set("sprint.history", h.slice(0,500));
+}
+function renderHistory(){
+  const h=store.get("sprint.history", []);
+  const days=new Set(h.map(x=>new Date(x.at).toDateString())).size;
+  const sprintSecs=h.reduce((a,x)=>a+x.value,0);
+  const best={}; h.filter(x=>x.type==="dist").forEach(x=>{ if(!best[x.target]||x.value<best[x.target]) best[x.target]=x.value; });
+  const bestTxt = Object.keys(best).length ? Object.entries(best).sort((a,b)=>a[0]-b[0]).map(([d,t])=>`${d}m ${t.toFixed(2)}`).join(" · ") : "—";
+  $("stats").innerHTML = `
+    <div class="stat"><div class="v">${h.length}</div><div class="l">Sprints done</div></div>
+    <div class="stat"><div class="v">${days}</div><div class="l">Training days</div></div>
+    <div class="stat"><div class="v">${fmtClock(sprintSecs)}</div><div class="l">Total sprint time</div></div>
+    <div class="stat"><div class="v" style="font-size:14px;line-height:1.4">${bestTxt}</div><div class="l">Personal bests (s)</div></div>`;
+  $("histList").innerHTML = h.length ? h.slice(0,100).map(x=>{
+    const d=new Date(x.at);
+    const when=d.toLocaleDateString(undefined,{weekday:"short",day:"numeric",month:"short"})+" "+d.toLocaleTimeString(undefined,{hour:"2-digit",minute:"2-digit"});
+    const what = x.type==="time" ? `${x.target}s timed sprint` : `${x.target} m ${x.mode==="gps"?"(GPS)":"(marked)"}`;
+    const val = x.type==="time" ? "✓" : x.value.toFixed(2)+"s";
+    return `<div class="hist-item"><div><div>${what}</div><div class="muted">${when}</div></div><div class="t">${val}</div></div>`;
+  }).join("") : `<div class="muted">No sprints yet. Your results will show up here.</div>`;
+}
+$("clearHist").onclick=()=>{ if(confirm("Delete all sprint history?")){ store.set("sprint.history", []); renderHistory(); } };
+
+renderAll();
+})();
+</script>
+</body>
+</html>
