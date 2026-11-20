@@ -93,7 +93,7 @@
   <!-- WARM-UP -->
   <section class="view active" id="v-warmup">
     <div class="card">
-      <div class="muted">Do this before every sprint session (about 15 minutes). Drills marked with a distance: mark out roughly 20 m and walk back between reps.</div>
+      <div class="muted">Do this before every sprint session (about 15–20 minutes). Drills marked with a distance: mark out roughly 20 m and walk back between reps.</div>
       <button class="big-btn" id="startWarmup" style="margin-top:12px">▶ Start guided warm-up</button>
     </div>
     <div class="card" id="drillList"></div>
@@ -178,16 +178,19 @@
 /* ---------- Data ---------- */
 const DRILLS = [
   {name:"Easy jog", dose:"3 minutes", secs:180, how:"Very relaxed jog to raise your heart rate and body temperature."},
-  {name:"Leg swings (front–back)", dose:"10 each leg", secs:45, how:"Hold a wall or fence. Swing one leg forward and back, gradually higher. Keep your torso tall."},
+  {name:"Leg swings (front–back)", dose:"10 each leg", secs:45, how:"Hold a wall or fence. Swing one leg forward and back, gradually higher. Keep your torso tall with head up."},
   {name:"Leg swings (side–side)", dose:"10 each leg", secs:45, how:"Face the wall, swing the leg across your body and out to the side."},
   {name:"Walking lunges", dose:"10 each leg", secs:60, how:"Long step, back knee close to the ground, push up tall. Reach arms overhead for a bigger stretch."},
-  {name:"A-March", dose:"2 × 20 m", how:"Walk tall. Drive one knee up to hip height with toes pulled up (dorsiflexed), then step down under your hips. Opposite arm swings at 90°. Slow and precise."},
-  {name:"A-Skip", dose:"2 × 20 m", how:"Same shape as the A-March, but with a small skip. Knee up, toes up, strike the ground under your hips and bounce off quickly. Stay tall."},
+  {name:"A-March", dose:"2 × 20 m", how:"Walk with head up. Drive one knee up to hip height with toes pulled up (dorsiflexed), then step down under your hips. Opposite arm swings at 90°. Slow and precise."},
+  {name:"A-Skip", dose:"2 × 20 m", how:"Same shape as the A-March, but with a small skip. Knee up, toes up, strike the ground under your hips and bounce off quickly. Keep your head up."},
   {name:"B-Skip", dose:"2 × 20 m", how:"A-Skip, then extend the lower leg forward and paw it back down under you, like scraping the ground."},
+  {name:"Knees-to-chest (dynamic stretch)", dose:"2 × 20 m", how:"Walk forward with head up. Grab one knee just below the kneecap and pull it into your chest while rising onto the toes of the standing leg. Hold for a moment, step down and switch legs."},
   {name:"High knees", dose:"2 × 20 m", how:"Quick, short steps bringing knees to hip height. Stay on the balls of your feet, fast arms."},
   {name:"Butt kicks", dose:"2 × 20 m", how:"Quick steps pulling heels up toward your glutes. Knees stay pointing down."},
+  {name:"Alternate leg cycles", dose:"2 × 20 m", how:"Move forward at a slow jog with head up. Take one leg through a full sprint cycle — heel up under your hip, knee forward and up, foot pawing down and back under you — then the other leg. Smooth and rhythmic, not rushed."},
   {name:"Straight-leg bounds", dose:"2 × 20 m", how:"Legs nearly straight, pull the ground back under you with each step, landing on the ball of the foot."},
   {name:"Carioca", dose:"20 m each direction", how:"Move sideways, crossing the back leg in front then behind. Rotate the hips, keep the shoulders square."},
+  {name:"Hamstring sweeps (dynamic hamstring stretch)", dose:"10 each leg", how:"Step one heel forward with the leg straight and toes up. Hinge at the hips with a flat back and sweep both hands low past the front foot, then rise with head up and step into the next one with the other leg. Keep moving forward."},
   {name:"Build-up runs", dose:"3 × 50 m", how:"Run 1 at about 60% effort, run 2 at 75%, run 3 at 90%. Walk back between each. You're now ready to sprint."}
 ];
 const TIME_PRESETS = [6,8,10,15,20,30,45,60];
@@ -365,7 +368,7 @@ $("startTime").onclick = async () => {
     for(let r=1;r<=reps;r++){
       const label=`Rep ${r} of ${reps} · ${secs}s sprint`;
       await countdown(label, (r-1)/reps);
-      showRun("go"); goSignal(); setRun({phase:"GO!", info:"Sprint! Drive your arms, stay tall."});
+      showRun("go"); goSignal(); setRun({phase:"GO!", info:"Sprint! Drive your arms, head up."});
       const t0=performance.now(); let warned=false;
       await new Promise((res,rej)=>{
         quitRej.push(rej);
