@@ -181,8 +181,8 @@ const DRILLS = [
   {name:"Leg swings (front–back)", dose:"10 each leg", secs:45, how:"Hold a wall or fence. Swing one leg forward and back, gradually higher. Keep your torso tall with head up."},
   {name:"Leg swings (side–side)", dose:"10 each leg", secs:45, how:"Face the wall, swing the leg across your body and out to the side."},
   {name:"Walking lunges", dose:"10 each leg", secs:60, how:"Long step, back knee close to the ground, push up tall. Reach arms overhead for a bigger stretch."},
-  {name:"A-March", dose:"2 × 20 m", how:"Walk with head up. Drive one knee up to hip height with toes pulled up (dorsiflexed), then step down under your hips. Opposite arm swings at 90°. Slow and precise."},
-  {name:"A-Skip", dose:"2 × 20 m", how:"Same shape as the A-March, but with a small skip. Knee up, toes up, strike the ground under your hips and bounce off quickly. Keep your head up."},
+  {name:"A-March", dose:"2 × 20 m", how:"Walk tall with head up. Drive one knee up to hip height with toes pulled up (dorsiflexed), then step down under your hips. Opposite arm swings at 90°. Slow and precise."},
+  {name:"A-Skip", dose:"2 × 20 m", how:"Same shape as the A-March, but with a small skip. Knee up, toes up, strike the ground under your hips and bounce off quickly. Stay tall with head up."},
   {name:"B-Skip", dose:"2 × 20 m", how:"A-Skip, then extend the lower leg forward and paw it back down under you, like scraping the ground."},
   {name:"Knees-to-chest (dynamic stretch)", dose:"2 × 20 m", how:"Walk forward with head up. Grab one knee just below the kneecap and pull it into your chest while rising onto the toes of the standing leg. Hold for a moment, step down and switch legs."},
   {name:"High knees", dose:"2 × 20 m", how:"Quick, short steps bringing knees to hip height. Stay on the balls of your feet, fast arms."},
@@ -368,7 +368,7 @@ $("startTime").onclick = async () => {
     for(let r=1;r<=reps;r++){
       const label=`Rep ${r} of ${reps} · ${secs}s sprint`;
       await countdown(label, (r-1)/reps);
-      showRun("go"); goSignal(); setRun({phase:"GO!", info:"Sprint! Drive your arms, head up."});
+      showRun("go"); goSignal(); setRun({phase:"GO!", info:"Sprint! Drive your arms, stay tall with head up."});
       const t0=performance.now(); let warned=false;
       await new Promise((res,rej)=>{
         quitRej.push(rej);
